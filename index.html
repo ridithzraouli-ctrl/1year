@@ -53,19 +53,7 @@ canvas:active {
     margin-top: 9px;
     font-size: 12px;
     letter-spacing: 2px;
-    color: #8ca9ce;
-}
-
-.counter {
-    position: fixed;
-    bottom: 25px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    color: #8ca9ce;
-    font-size: 12px;
-    letter-spacing: 2px;
-    pointer-events: none;
+    color: #8caed5;
 }
 
 .controls {
@@ -78,9 +66,9 @@ canvas:active {
 }
 
 .controls button {
-    width: 36px;
-    height: 36px;
-    border: 1px solid #344a68;
+    width: 38px;
+    height: 38px;
+    border: 1px solid #344e70;
     border-radius: 50%;
     background: #0b192b;
     color: #c6dcf8;
@@ -94,32 +82,26 @@ canvas:active {
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(1, 6, 17, 0.7);
-    backdrop-filter: blur(5px);
+    background: rgba(1, 6, 17, 0.78);
+    backdrop-filter: blur(6px);
     z-index: 5;
     padding: 25px;
+    overflow-y: auto;
 }
 
 .modal.show {
     display: flex;
 }
 
-.reason-card {
+.card {
     width: 100%;
-    max-width: 380px;
+    max-width: 390px;
     padding: 42px 30px;
     text-align: center;
     background: #0b192c;
     border: 1px solid #344e70;
     border-radius: 5px;
     box-shadow: 0 0 45px rgba(65, 125, 200, 0.12);
-}
-
-.reason-number {
-    color: #83b6ed;
-    font-size: 11px;
-    letter-spacing: 3px;
-    margin-bottom: 30px;
 }
 
 .reason-text {
@@ -129,22 +111,77 @@ canvas:active {
     font-weight: normal;
 }
 
-.reason-star {
-    margin-top: 30px;
+.small-star {
+    margin-top: 28px;
     color: #8dbdf0;
-    font-size: 18px;
+    font-size: 19px;
+}
+
+.progress-title {
+    color: #8dbdf0;
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+}
+
+.moon-icon {
+    font-size: 42px;
+    color: #d6e8ff;
+    margin-bottom: 25px;
+    text-shadow: 0 0 25px rgba(132, 190, 255, 0.6);
+}
+
+.progress-count {
+    font-size: 20px;
+    color: #e0ebfa;
+    margin-bottom: 18px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 3px;
+    background: #1d304a;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #91c5ff;
+    transition: width 0.3s;
+}
+
+.progress-description {
+    color: #91a8c6;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.letter-text {
+    color: #dce9fa;
+    font-size: 17px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    text-align: left;
+    margin-top: 25px;
 }
 
 .close {
     margin-top: 30px;
-    padding: 10px 20px;
+    padding: 11px 22px;
     border: 1px solid #344e70;
     background: transparent;
     color: #a9c6e9;
     font-family: Georgia, serif;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 2px;
     cursor: pointer;
+}
+
+.close:disabled {
+    opacity: 0.4;
+    cursor: default;
 }
 
 </style>
@@ -159,47 +196,134 @@ canvas:active {
     <p>explore our little universe</p>
 </div>
 
-<div class="counter" id="counter">
-    0 / 365 DISCOVERED
-</div>
-
 <div class="controls">
     <button id="zoomOut">−</button>
     <button id="zoomIn">+</button>
-    <button id="reset">⌂</button>
+    <button id="home">⌂</button>
 </div>
 
 <div class="modal" id="modal">
-    <div class="reason-card">
-        <div class="reason-number" id="reasonNumber"></div>
-        <div class="reason-text" id="reasonText"></div>
-        <div class="reason-star">✧</div>
-        <button class="close" id="close">BACK TO THE STARS</button>
-    </div>
+    <div class="card" id="card"></div>
 </div>
 
 <script>
+
 const canvas = document.getElementById("sky");
 const ctx = canvas.getContext("2d");
 
-const reasons = Array.from({ length: 365 }, (_, i) =>
-    `This is where reason number ${i + 1} will go.`
+const reasons = Array.from({ length: 365 }, () =>
+    "This is where one of my reasons for loving you will go."
 );
 
-let width, height;
-let stars = [];
-let discovered = new Set();
+const anniversaryLetter = `
+My love,
 
-let camera = {
-    x: 2500,
-    y: 1800,
+This is where your anniversary letter will go.
+
+365 little stars, 365 reasons, and still
+so many more things I could tell you.
+
+Happy anniversary.
+
+I love you.
+`;
+
+let width, height;
+
+const world = {
+    width: 6000,
+    height: 4200
+};
+
+const camera = {
+    x: world.width / 2,
+    y: world.height / 2,
     zoom: 1
 };
 
-const world = {
-    width: 5000,
-    height: 3600
-};
+let stars = [];
+let discovered = new Set();
+
+let seed = 12345;
+
+function random() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+}
+
+function wrap(value, max) {
+    return ((value % max) + max) % max;
+}
+
+function distance(a, b) {
+    let dx = Math.abs(a.x - b.x);
+    let dy = Math.abs(a.y - b.y);
+
+    dx = Math.min(dx, world.width - dx);
+    dy = Math.min(dy, world.height - dy);
+
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Generate evenly distributed stars
+
+function generateStars() {
+    stars = [];
+
+    for (let i = 0; i < 365; i++) {
+        let bestCandidate = null;
+        let bestDistance = -1;
+
+        for (let j = 0; j < 45; j++) {
+            const candidate = {
+                x: random() * world.width,
+                y: random() * world.height
+            };
+
+            let nearest = Infinity;
+
+            for (const star of stars) {
+                nearest = Math.min(
+                    nearest,
+                    distance(candidate, star)
+                );
+            }
+
+            const moonDistance = distance(candidate, {
+                x: world.width / 2,
+                y: world.height / 2
+            });
+
+            if (moonDistance < 260) {
+                continue;
+            }
+
+            if (nearest > bestDistance) {
+                bestDistance = nearest;
+                bestCandidate = candidate;
+            }
+        }
+
+        if (!bestCandidate) {
+            bestCandidate = {
+                x: random() * world.width,
+                y: random() * world.height
+            };
+        }
+
+        stars.push({
+            ...bestCandidate,
+            radius: 1.2 + random() * 1.5,
+            brightness: 0.55 + random() * 0.45,
+            phase: random() * Math.PI * 2,
+            speed: 0.5 + random() * 1.5
+        });
+    }
+}
+
+generateStars();
+
+// Resize
 
 function resize() {
     width = window.innerWidth;
@@ -211,37 +335,9 @@ function resize() {
     canvas.height = height * dpr;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    draw();
 }
 
 window.addEventListener("resize", resize);
-
-// Generate stars
-
-let seed = 12345;
-
-function random() {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-}
-
-function generateStars() {
-    stars = [];
-
-    for (let i = 0; i < 365; i++) {
-        stars.push({
-            x: 100 + random() * 4800,
-            y: 100 + random() * 3400,
-            radius: 1 + random() * 2.2,
-            brightness: 0.4 + random() * 0.6,
-            phase: random() * Math.PI * 2,
-            speed: 0.5 + random() * 1.5
-        });
-    }
-}
-
-generateStars();
 
 // Background
 
@@ -251,10 +347,10 @@ function drawBackground() {
 
     const glow1 = ctx.createRadialGradient(
         width * 0.3, height * 0.5, 0,
-        width * 0.3, height * 0.5, width * 0.7
+        width * 0.3, height * 0.5, width * 0.75
     );
 
-    glow1.addColorStop(0, "rgba(17, 55, 105, 0.13)");
+    glow1.addColorStop(0, "rgba(19, 65, 125, 0.15)");
     glow1.addColorStop(1, "rgba(3, 9, 22, 0)");
 
     ctx.fillStyle = glow1;
@@ -262,21 +358,30 @@ function drawBackground() {
 
     const glow2 = ctx.createRadialGradient(
         width * 0.8, height * 0.8, 0,
-        width * 0.8, height * 0.8, width * 0.6
+        width * 0.8, height * 0.8, width * 0.65
     );
 
-    glow2.addColorStop(0, "rgba(24, 58, 105, 0.1)");
+    glow2.addColorStop(0, "rgba(35, 77, 130, 0.10)");
     glow2.addColorStop(1, "rgba(3, 9, 22, 0)");
 
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, width, height);
 }
 
-// Drawing stars
+// Get shortest wrapped distance
+
+function worldDifference(a, b, size) {
+    return wrap(a - b + size / 2, size) - size / 2;
+}
+
+// Draw stars
 
 function drawStar(star, index) {
-    const x = (star.x - camera.x) * camera.zoom + width / 2;
-    const y = (star.y - camera.y) * camera.zoom + height / 2;
+    const dx = worldDifference(star.x, camera.x, world.width);
+    const dy = worldDifference(star.y, camera.y, world.height);
+
+    const x = width / 2 + dx * camera.zoom;
+    const y = height / 2 + dy * camera.zoom;
 
     if (
         x < -20 || x > width + 20 ||
@@ -284,26 +389,84 @@ function drawStar(star, index) {
     ) return;
 
     const time = performance.now() / 1000;
-    const twinkle = 0.8 + Math.sin(time * star.speed + star.phase) * 0.2;
 
-    const size = star.radius * camera.zoom;
-    const isDiscovered = discovered.has(index);
+    const twinkle =
+        0.8 + Math.sin(time * star.speed + star.phase) * 0.2;
+
+    const size = Math.max(star.radius * camera.zoom, 1.2);
+    const seen = discovered.has(index);
 
     ctx.globalAlpha = star.brightness * twinkle;
 
-    ctx.shadowBlur = isDiscovered ? 8 : 13;
-    ctx.shadowColor = isDiscovered ? "#6cafff" : "#b9ddff";
+    ctx.shadowBlur = seen ? 12 : 9;
+    ctx.shadowColor = seen ? "#45baff" : "#c5e3ff";
 
-    ctx.fillStyle = isDiscovered ? "#72aeea" : "#d9edff";
+    ctx.fillStyle = seen ? "#45baff" : "#e0efff";
 
     ctx.beginPath();
-    ctx.arc(x, y, Math.max(size, 1.2), 0, Math.PI * 2);
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+}
+
+// Draw moon
+
+function drawMoon() {
+    const dx = worldDifference(
+        world.width / 2,
+        camera.x,
+        world.width
+    );
+
+    const dy = worldDifference(
+        world.height / 2,
+        camera.y,
+        world.height
+    );
+
+    const x = width / 2 + dx * camera.zoom;
+    const y = height / 2 + dy * camera.zoom;
+
+    if (
+        x < -100 || x > width + 100 ||
+        y < -100 || y > height + 100
+    ) return;
+
+    const radius = 36 * camera.zoom;
+
+    ctx.save();
+
+    ctx.shadowBlur = 30 * camera.zoom;
+    ctx.shadowColor = "rgba(133, 190, 255, 0.65)";
+
+    ctx.fillStyle = "#dcecff";
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.shadowBlur = 0;
 
-    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "destination-out";
+
+    ctx.beginPath();
+    ctx.arc(
+        x + radius * 0.48,
+        y - radius * 0.27,
+        radius * 0.88,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+
+    ctx.globalCompositeOperation = "source-over";
+
+    ctx.restore();
 }
+
+// Render
 
 function draw() {
     drawBackground();
@@ -311,21 +474,27 @@ function draw() {
     for (let i = 0; i < stars.length; i++) {
         drawStar(stars[i], i);
     }
-}
 
-// Animation
+    drawMoon();
+}
 
 function animate() {
     draw();
     requestAnimationFrame(animate);
 }
 
-// Convert screen coordinates to world coordinates
+// Screen to world coordinates
 
 function screenToWorld(x, y) {
     return {
-        x: (x - width / 2) / camera.zoom + camera.x,
-        y: (y - height / 2) / camera.zoom + camera.y
+        x: wrap(
+            camera.x + (x - width / 2) / camera.zoom,
+            world.width
+        ),
+        y: wrap(
+            camera.y + (y - height / 2) / camera.zoom,
+            world.height
+        )
     };
 }
 
@@ -335,51 +504,151 @@ function findStar(x, y) {
     const point = screenToWorld(x, y);
 
     let closest = -1;
-    let closestDistance = 35 / camera.zoom;
+    let closestDistance = 30 / camera.zoom;
 
     stars.forEach((star, i) => {
-        const dx = star.x - point.x;
-        const dy = star.y - point.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const d = distance(point, star);
 
-        if (distance < closestDistance) {
+        if (d < closestDistance) {
             closest = i;
-            closestDistance = distance;
+            closestDistance = d;
         }
     });
 
     return closest;
 }
 
-// Open reason
+// Find moon
+
+function isMoonClicked(x, y) {
+    const point = screenToWorld(x, y);
+
+    const moon = {
+        x: world.width / 2,
+        y: world.height / 2
+    };
+
+    return distance(point, moon) < 65 / camera.zoom;
+}
+
+// Modal system
+
+const modal = document.getElementById("modal");
+const card = document.getElementById("card");
+
+function showModal(content) {
+    card.innerHTML = content;
+    modal.classList.add("show");
+}
+
+function closeModal() {
+    modal.classList.remove("show");
+}
+
+// Show reason
 
 function openReason(index) {
     discovered.add(index);
 
-    document.getElementById("reasonNumber").textContent =
-        `STAR ${String(index + 1).padStart(3, "0")} / 365`;
+    showModal(`
+        <div class="reason-text">
+            ${escapeHTML(reasons[index])}
+        </div>
 
-    document.getElementById("reasonText").textContent =
-        reasons[index];
+        <div class="small-star">✧</div>
 
-    document.getElementById("counter").textContent =
-        `${discovered.size} / 365 DISCOVERED`;
-
-    document.getElementById("modal").classList.add("show");
+        <button class="close" onclick="closeModal()">
+            BACK TO THE STARS
+        </button>
+    `);
 }
 
-document.getElementById("close").addEventListener("click", () => {
-    document.getElementById("modal").classList.remove("show");
-});
+// Escape reason text
 
-// Pointer interaction
+function escapeHTML(text) {
+    return String(text).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+// Show moon progress
+
+function openMoon() {
+    const count = discovered.size;
+    const percentage = count / 365 * 100;
+    const unlocked = count === 365;
+
+    showModal(`
+        <div class="moon-icon">☾</div>
+
+        <div class="progress-title">
+            OUR LITTLE UNIVERSE
+        </div>
+
+        <div class="progress-count">
+            ${count} / 365 stars discovered
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"
+                style="width: ${percentage}%">
+            </div>
+        </div>
+
+        <div class="progress-description">
+            ${unlocked
+                ? "You've discovered every little reason. There's something waiting for you."
+                : "There are still little pieces of my heart waiting to be found."
+            }
+        </div>
+
+        <button class="close"
+            ${unlocked ? "" : "disabled"}
+            onclick="${unlocked ? "openLetter()" : ""}">
+            ${unlocked ? "READ YOUR LETTER" : "LETTER LOCKED"}
+        </button>
+
+        <br>
+
+        <button class="close" onclick="closeModal()">
+            BACK TO THE STARS
+        </button>
+    `);
+}
+
+// Show final letter
+
+function openLetter() {
+    if (discovered.size !== 365) return;
+
+    showModal(`
+        <div class="moon-icon">☾</div>
+
+        <div class="progress-title">
+            FOR YOU, ALWAYS
+        </div>
+
+        <div class="letter-text">
+            ${escapeHTML(anniversaryLetter)}
+        </div>
+
+        <button class="close" onclick="closeModal()">
+            BACK TO OUR UNIVERSE
+        </button>
+    `);
+}
+
+// Pointer controls
 
 let pointers = new Map();
 let lastPosition = null;
-let startPosition = null;
-let wasDragging = false;
+let gestureMoved = false;
+let multiTouch = false;
 let pinchDistance = 0;
-let previousZoom = 1;
 
 canvas.addEventListener("pointerdown", e => {
     canvas.setPointerCapture(e.pointerId);
@@ -390,20 +659,25 @@ canvas.addEventListener("pointerdown", e => {
     });
 
     if (pointers.size === 1) {
-        lastPosition = { x: e.clientX, y: e.clientY };
-        startPosition = { x: e.clientX, y: e.clientY };
-        wasDragging = false;
+        lastPosition = {
+            x: e.clientX,
+            y: e.clientY
+        };
+
+        gestureMoved = false;
+        multiTouch = false;
     }
 
     if (pointers.size === 2) {
+        multiTouch = true;
+        gestureMoved = true;
+
         const points = [...pointers.values()];
 
         pinchDistance = Math.hypot(
             points[1].x - points[0].x,
             points[1].y - points[0].y
         );
-
-        previousZoom = camera.zoom;
     }
 });
 
@@ -419,15 +693,19 @@ canvas.addEventListener("pointermove", e => {
         const dx = e.clientX - lastPosition.x;
         const dy = e.clientY - lastPosition.y;
 
-        if (
-            Math.abs(e.clientX - startPosition.x) > 5 ||
-            Math.abs(e.clientY - startPosition.y) > 5
-        ) {
-            wasDragging = true;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            gestureMoved = true;
         }
 
-        camera.x -= dx / camera.zoom;
-        camera.y -= dy / camera.zoom;
+        camera.x = wrap(
+            camera.x - dx / camera.zoom,
+            world.width
+        );
+
+        camera.y = wrap(
+            camera.y - dy / camera.zoom,
+            world.height
+        );
 
         lastPosition = {
             x: e.clientX,
@@ -438,36 +716,42 @@ canvas.addEventListener("pointermove", e => {
     if (pointers.size === 2) {
         const points = [...pointers.values()];
 
-        const distance = Math.hypot(
+        const newDistance = Math.hypot(
             points[1].x - points[0].x,
             points[1].y - points[0].y
         );
 
-        if (pinchDistance > 0) {
-            const middleX = (points[0].x + points[1].x) / 2;
-            const middleY = (points[0].y + points[1].y) / 2;
+        const middleX = (points[0].x + points[1].x) / 2;
+        const middleY = (points[0].y + points[1].y) / 2;
 
+        if (pinchDistance > 0) {
             zoomAt(
                 middleX,
                 middleY,
-                previousZoom * distance / pinchDistance
+                camera.zoom * newDistance / pinchDistance
             );
         }
+
+        pinchDistance = newDistance;
     }
 });
 
 canvas.addEventListener("pointerup", e => {
-    const position = pointers.get(e.pointerId);
+    if (!pointers.has(e.pointerId)) return;
 
     if (
         pointers.size === 1 &&
-        position &&
-        !wasDragging
+        !gestureMoved &&
+        !multiTouch
     ) {
-        const index = findStar(e.clientX, e.clientY);
+        if (isMoonClicked(e.clientX, e.clientY)) {
+            openMoon();
+        } else {
+            const index = findStar(e.clientX, e.clientY);
 
-        if (index !== -1) {
-            openReason(index);
+            if (index !== -1) {
+                openReason(index);
+            }
         }
     }
 
@@ -475,21 +759,23 @@ canvas.addEventListener("pointerup", e => {
 
     if (pointers.size === 1) {
         const remaining = [...pointers.values()][0];
+
         lastPosition = { ...remaining };
-        startPosition = { ...remaining };
-        wasDragging = false;
+        gestureMoved = true;
+        multiTouch = true;
     }
 
     if (pointers.size === 0) {
         lastPosition = null;
-        startPosition = null;
+        pinchDistance = 0;
     }
 });
 
 canvas.addEventListener("pointercancel", e => {
     pointers.delete(e.pointerId);
     lastPosition = null;
-    startPosition = null;
+    pinchDistance = 0;
+    gestureMoved = true;
 });
 
 // Zoom
@@ -497,15 +783,22 @@ canvas.addEventListener("pointercancel", e => {
 function zoomAt(x, y, newZoom) {
     const oldZoom = camera.zoom;
 
-    newZoom = Math.max(0.35, Math.min(3, newZoom));
+    newZoom = Math.max(0.65, Math.min(3, newZoom));
 
-    const worldX = (x - width / 2) / oldZoom + camera.x;
-    const worldY = (y - height / 2) / oldZoom + camera.y;
+    const worldX = camera.x + (x - width / 2) / oldZoom;
+    const worldY = camera.y + (y - height / 2) / oldZoom;
 
     camera.zoom = newZoom;
 
-    camera.x = worldX - (x - width / 2) / newZoom;
-    camera.y = worldY - (y - height / 2) / newZoom;
+    camera.x = wrap(
+        worldX - (x - width / 2) / newZoom,
+        world.width
+    );
+
+    camera.y = wrap(
+        worldY - (y - height / 2) / newZoom,
+        world.height
+    );
 }
 
 document.getElementById("zoomIn").addEventListener("click", () => {
@@ -516,11 +809,13 @@ document.getElementById("zoomOut").addEventListener("click", () => {
     zoomAt(width / 2, height / 2, camera.zoom / 1.25);
 });
 
-document.getElementById("reset").addEventListener("click", () => {
+document.getElementById("home").addEventListener("click", () => {
     camera.x = world.width / 2;
     camera.y = world.height / 2;
     camera.zoom = 1;
 });
+
+// Mouse wheel zoom
 
 canvas.addEventListener("wheel", e => {
     e.preventDefault();
@@ -539,5 +834,4 @@ animate();
 
 </script>
 </body>
-                            </html>
-                            
+</html>
