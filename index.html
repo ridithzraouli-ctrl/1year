@@ -1,0 +1,543 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>365 Reasons</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #030916;
+    color: white;
+    font-family: Georgia, serif;
+    touch-action: none;
+}
+
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+    touch-action: none;
+}
+
+canvas:active {
+    cursor: grabbing;
+}
+
+.header {
+    position: fixed;
+    top: 30px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: normal;
+    letter-spacing: 3px;
+}
+
+.header p {
+    margin-top: 9px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #8ca9ce;
+}
+
+.counter {
+    position: fixed;
+    bottom: 25px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #8ca9ce;
+    font-size: 12px;
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+
+.controls {
+    position: fixed;
+    right: 20px;
+    bottom: 25px;
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+}
+
+.controls button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #344a68;
+    border-radius: 50%;
+    background: #0b192b;
+    color: #c6dcf8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(1, 6, 17, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 5;
+    padding: 25px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.reason-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 42px 30px;
+    text-align: center;
+    background: #0b192c;
+    border: 1px solid #344e70;
+    border-radius: 5px;
+    box-shadow: 0 0 45px rgba(65, 125, 200, 0.12);
+}
+
+.reason-number {
+    color: #83b6ed;
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+}
+
+.reason-text {
+    font-size: 23px;
+    line-height: 1.6;
+    color: #e0ebfa;
+    font-weight: normal;
+}
+
+.reason-star {
+    margin-top: 30px;
+    color: #8dbdf0;
+    font-size: 18px;
+}
+
+.close {
+    margin-top: 30px;
+    padding: 10px 20px;
+    border: 1px solid #344e70;
+    background: transparent;
+    color: #a9c6e9;
+    font-family: Georgia, serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="sky"></canvas>
+
+<div class="header">
+    <h1>365 Reasons</h1>
+    <p>explore our little universe</p>
+</div>
+
+<div class="counter" id="counter">
+    0 / 365 DISCOVERED
+</div>
+
+<div class="controls">
+    <button id="zoomOut">−</button>
+    <button id="zoomIn">+</button>
+    <button id="reset">⌂</button>
+</div>
+
+<div class="modal" id="modal">
+    <div class="reason-card">
+        <div class="reason-number" id="reasonNumber"></div>
+        <div class="reason-text" id="reasonText"></div>
+        <div class="reason-star">✧</div>
+        <button class="close" id="close">BACK TO THE STARS</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("sky");
+const ctx = canvas.getContext("2d");
+
+const reasons = Array.from({ length: 365 }, (_, i) =>
+    `This is where reason number ${i + 1} will go.`
+);
+
+let width, height;
+let stars = [];
+let discovered = new Set();
+
+let camera = {
+    x: 2500,
+    y: 1800,
+    zoom: 1
+};
+
+const world = {
+    width: 5000,
+    height: 3600
+};
+
+function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    draw();
+}
+
+window.addEventListener("resize", resize);
+
+// Generate stars
+
+let seed = 12345;
+
+function random() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+}
+
+function generateStars() {
+    stars = [];
+
+    for (let i = 0; i < 365; i++) {
+        stars.push({
+            x: 100 + random() * 4800,
+            y: 100 + random() * 3400,
+            radius: 1 + random() * 2.2,
+            brightness: 0.4 + random() * 0.6,
+            phase: random() * Math.PI * 2,
+            speed: 0.5 + random() * 1.5
+        });
+    }
+}
+
+generateStars();
+
+// Background
+
+function drawBackground() {
+    ctx.fillStyle = "#030916";
+    ctx.fillRect(0, 0, width, height);
+
+    const glow1 = ctx.createRadialGradient(
+        width * 0.3, height * 0.5, 0,
+        width * 0.3, height * 0.5, width * 0.7
+    );
+
+    glow1.addColorStop(0, "rgba(17, 55, 105, 0.13)");
+    glow1.addColorStop(1, "rgba(3, 9, 22, 0)");
+
+    ctx.fillStyle = glow1;
+    ctx.fillRect(0, 0, width, height);
+
+    const glow2 = ctx.createRadialGradient(
+        width * 0.8, height * 0.8, 0,
+        width * 0.8, height * 0.8, width * 0.6
+    );
+
+    glow2.addColorStop(0, "rgba(24, 58, 105, 0.1)");
+    glow2.addColorStop(1, "rgba(3, 9, 22, 0)");
+
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 0, width, height);
+}
+
+// Drawing stars
+
+function drawStar(star, index) {
+    const x = (star.x - camera.x) * camera.zoom + width / 2;
+    const y = (star.y - camera.y) * camera.zoom + height / 2;
+
+    if (
+        x < -20 || x > width + 20 ||
+        y < -20 || y > height + 20
+    ) return;
+
+    const time = performance.now() / 1000;
+    const twinkle = 0.8 + Math.sin(time * star.speed + star.phase) * 0.2;
+
+    const size = star.radius * camera.zoom;
+    const isDiscovered = discovered.has(index);
+
+    ctx.globalAlpha = star.brightness * twinkle;
+
+    ctx.shadowBlur = isDiscovered ? 8 : 13;
+    ctx.shadowColor = isDiscovered ? "#6cafff" : "#b9ddff";
+
+    ctx.fillStyle = isDiscovered ? "#72aeea" : "#d9edff";
+
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(size, 1.2), 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.globalAlpha = 1;
+}
+
+function draw() {
+    drawBackground();
+
+    for (let i = 0; i < stars.length; i++) {
+        drawStar(stars[i], i);
+    }
+}
+
+// Animation
+
+function animate() {
+    draw();
+    requestAnimationFrame(animate);
+}
+
+// Convert screen coordinates to world coordinates
+
+function screenToWorld(x, y) {
+    return {
+        x: (x - width / 2) / camera.zoom + camera.x,
+        y: (y - height / 2) / camera.zoom + camera.y
+    };
+}
+
+// Find clicked star
+
+function findStar(x, y) {
+    const point = screenToWorld(x, y);
+
+    let closest = -1;
+    let closestDistance = 35 / camera.zoom;
+
+    stars.forEach((star, i) => {
+        const dx = star.x - point.x;
+        const dy = star.y - point.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < closestDistance) {
+            closest = i;
+            closestDistance = distance;
+        }
+    });
+
+    return closest;
+}
+
+// Open reason
+
+function openReason(index) {
+    discovered.add(index);
+
+    document.getElementById("reasonNumber").textContent =
+        `STAR ${String(index + 1).padStart(3, "0")} / 365`;
+
+    document.getElementById("reasonText").textContent =
+        reasons[index];
+
+    document.getElementById("counter").textContent =
+        `${discovered.size} / 365 DISCOVERED`;
+
+    document.getElementById("modal").classList.add("show");
+}
+
+document.getElementById("close").addEventListener("click", () => {
+    document.getElementById("modal").classList.remove("show");
+});
+
+// Pointer interaction
+
+let pointers = new Map();
+let lastPosition = null;
+let startPosition = null;
+let wasDragging = false;
+let pinchDistance = 0;
+let previousZoom = 1;
+
+canvas.addEventListener("pointerdown", e => {
+    canvas.setPointerCapture(e.pointerId);
+
+    pointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY
+    });
+
+    if (pointers.size === 1) {
+        lastPosition = { x: e.clientX, y: e.clientY };
+        startPosition = { x: e.clientX, y: e.clientY };
+        wasDragging = false;
+    }
+
+    if (pointers.size === 2) {
+        const points = [...pointers.values()];
+
+        pinchDistance = Math.hypot(
+            points[1].x - points[0].x,
+            points[1].y - points[0].y
+        );
+
+        previousZoom = camera.zoom;
+    }
+});
+
+canvas.addEventListener("pointermove", e => {
+    if (!pointers.has(e.pointerId)) return;
+
+    pointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY
+    });
+
+    if (pointers.size === 1) {
+        const dx = e.clientX - lastPosition.x;
+        const dy = e.clientY - lastPosition.y;
+
+        if (
+            Math.abs(e.clientX - startPosition.x) > 5 ||
+            Math.abs(e.clientY - startPosition.y) > 5
+        ) {
+            wasDragging = true;
+        }
+
+        camera.x -= dx / camera.zoom;
+        camera.y -= dy / camera.zoom;
+
+        lastPosition = {
+            x: e.clientX,
+            y: e.clientY
+        };
+    }
+
+    if (pointers.size === 2) {
+        const points = [...pointers.values()];
+
+        const distance = Math.hypot(
+            points[1].x - points[0].x,
+            points[1].y - points[0].y
+        );
+
+        if (pinchDistance > 0) {
+            const middleX = (points[0].x + points[1].x) / 2;
+            const middleY = (points[0].y + points[1].y) / 2;
+
+            zoomAt(
+                middleX,
+                middleY,
+                previousZoom * distance / pinchDistance
+            );
+        }
+    }
+});
+
+canvas.addEventListener("pointerup", e => {
+    const position = pointers.get(e.pointerId);
+
+    if (
+        pointers.size === 1 &&
+        position &&
+        !wasDragging
+    ) {
+        const index = findStar(e.clientX, e.clientY);
+
+        if (index !== -1) {
+            openReason(index);
+        }
+    }
+
+    pointers.delete(e.pointerId);
+
+    if (pointers.size === 1) {
+        const remaining = [...pointers.values()][0];
+        lastPosition = { ...remaining };
+        startPosition = { ...remaining };
+        wasDragging = false;
+    }
+
+    if (pointers.size === 0) {
+        lastPosition = null;
+        startPosition = null;
+    }
+});
+
+canvas.addEventListener("pointercancel", e => {
+    pointers.delete(e.pointerId);
+    lastPosition = null;
+    startPosition = null;
+});
+
+// Zoom
+
+function zoomAt(x, y, newZoom) {
+    const oldZoom = camera.zoom;
+
+    newZoom = Math.max(0.35, Math.min(3, newZoom));
+
+    const worldX = (x - width / 2) / oldZoom + camera.x;
+    const worldY = (y - height / 2) / oldZoom + camera.y;
+
+    camera.zoom = newZoom;
+
+    camera.x = worldX - (x - width / 2) / newZoom;
+    camera.y = worldY - (y - height / 2) / newZoom;
+}
+
+document.getElementById("zoomIn").addEventListener("click", () => {
+    zoomAt(width / 2, height / 2, camera.zoom * 1.25);
+});
+
+document.getElementById("zoomOut").addEventListener("click", () => {
+    zoomAt(width / 2, height / 2, camera.zoom / 1.25);
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+    camera.x = world.width / 2;
+    camera.y = world.height / 2;
+    camera.zoom = 1;
+});
+
+canvas.addEventListener("wheel", e => {
+    e.preventDefault();
+
+    zoomAt(
+        e.clientX,
+        e.clientY,
+        camera.zoom * (e.deltaY < 0 ? 1.1 : 0.9)
+    );
+}, { passive: false });
+
+// Start
+
+resize();
+animate();
+
+</script>
+</body>
+                            </html>
+                            
