@@ -3,8 +3,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>365 Reasons</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>365</title>
 
 <style>
 * {
@@ -24,56 +24,33 @@ canvas {
     display: block;
     width: 100vw;
     height: 100vh;
-    cursor: grab;
     touch-action: none;
+    cursor: grab;
 }
 
 canvas:active {
     cursor: grabbing;
 }
 
-.header {
-    position: fixed;
-    top: 30px;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 25px;
-    font-weight: normal;
-    letter-spacing: 3px;
-}
-
-.header p {
-    margin-top: 9px;
-    font-size: 12px;
-    letter-spacing: 2px;
-    color: #8caed5;
-}
-
 .controls {
     position: fixed;
     right: 20px;
-    bottom: 25px;
+    bottom: 22px;
     display: flex;
-    gap: 8px;
+    gap: 9px;
     z-index: 3;
 }
 
 .controls button {
     width: 38px;
     height: 38px;
-    border: 1px solid #344e70;
+    border: 1px solid rgba(150,190,235,.25);
     border-radius: 50%;
-    background: #0b192b;
-    color: #c6dcf8;
-    font-size: 18px;
+    background: rgba(9,23,43,.8);
+    color: #c9e4ff;
+    font-size: 19px;
     cursor: pointer;
+    backdrop-filter: blur(8px);
 }
 
 .modal {
@@ -82,11 +59,10 @@ canvas:active {
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(1, 6, 17, 0.78);
-    backdrop-filter: blur(6px);
+    padding: 24px;
+    background: rgba(1,6,17,.78);
+    backdrop-filter: blur(9px);
     z-index: 5;
-    padding: 25px;
-    overflow-y: auto;
 }
 
 .modal.show {
@@ -94,93 +70,118 @@ canvas:active {
 }
 
 .card {
+    position: relative;
     width: 100%;
     max-width: 390px;
-    padding: 42px 30px;
+    padding: 52px 30px 45px;
     text-align: center;
-    background: #0b192c;
-    border: 1px solid #344e70;
-    border-radius: 5px;
-    box-shadow: 0 0 45px rgba(65, 125, 200, 0.12);
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(53,100,157,.18), transparent 65%),
+        #09172a;
+    border: 1px solid rgba(145,190,235,.28);
+    border-radius: 8px;
+    box-shadow: 0 0 60px rgba(65,135,210,.12);
+    animation: appear .25s ease;
+    max-height: 85vh;
+    overflow-y: auto;
 }
 
-.reason-text {
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.exit {
+    position: absolute;
+    top: 13px;
+    right: 16px;
+    border: none;
+    background: transparent;
+    color: #9bb8d8;
+    font-family: Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 200;
+    cursor: pointer;
+}
+
+.number {
+    color: #82baff;
+    font-size: 12px;
+    letter-spacing: 3px;
+    margin-bottom: 27px;
+}
+
+.reason {
+    color: #e1edfc;
     font-size: 23px;
-    line-height: 1.6;
-    color: #e0ebfa;
+    line-height: 1.7;
     font-weight: normal;
 }
 
-.small-star {
-    margin-top: 28px;
-    color: #8dbdf0;
-    font-size: 19px;
-}
-
-.progress-title {
-    color: #8dbdf0;
-    font-size: 11px;
-    letter-spacing: 3px;
-    margin-bottom: 25px;
+.star-decoration {
+    margin-top: 30px;
+    color: #8ec5ff;
+    font-size: 20px;
+    text-shadow: 0 0 15px #65b3ff;
 }
 
 .moon-icon {
-    font-size: 42px;
-    color: #d6e8ff;
-    margin-bottom: 25px;
-    text-shadow: 0 0 25px rgba(132, 190, 255, 0.6);
+    font-size: 55px;
+    color: #dcecff;
+    margin-bottom: 22px;
+    text-shadow: 0 0 30px rgba(135,190,255,.65);
 }
 
 .progress-count {
-    font-size: 20px;
-    color: #e0ebfa;
-    margin-bottom: 18px;
+    color: #dcecff;
+    font-size: 21px;
+    margin-bottom: 22px;
 }
 
 .progress-bar {
     width: 100%;
     height: 3px;
-    background: #1d304a;
-    margin: 20px 0;
+    background: #1c304b;
+    margin-bottom: 25px;
     overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    width: 0%;
-    background: #91c5ff;
-    transition: width 0.3s;
+    background: #83c5ff;
+    transition: width .3s;
+    box-shadow: 0 0 12px #64baff;
 }
 
-.progress-description {
-    color: #91a8c6;
-    font-size: 13px;
-    line-height: 1.7;
-}
-
-.letter-text {
+.letter {
     color: #dce9fa;
     font-size: 17px;
     line-height: 1.9;
     white-space: pre-wrap;
     text-align: left;
-    margin-top: 25px;
+    margin-top: 15px;
 }
 
-.close {
-    margin-top: 30px;
-    padding: 11px 22px;
-    border: 1px solid #344e70;
-    background: transparent;
-    color: #a9c6e9;
+.unlock {
+    margin-top: 10px;
+    padding: 12px 24px;
+    border: 1px solid #537eae;
+    background: rgba(72,135,195,.12);
+    color: #c9e4ff;
     font-family: Georgia, serif;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 2px;
     cursor: pointer;
 }
 
-.close:disabled {
-    opacity: 0.4;
+.unlock:disabled {
+    opacity: .35;
     cursor: default;
 }
 
@@ -190,11 +191,6 @@ canvas:active {
 <body>
 
 <canvas id="sky"></canvas>
-
-<div class="header">
-    <h1>365 Reasons</h1>
-    <p>explore our little universe</p>
-</div>
 
 <div class="controls">
     <button id="zoomOut">−</button>
@@ -207,32 +203,18 @@ canvas:active {
 </div>
 
 <script>
-
 const canvas = document.getElementById("sky");
 const ctx = canvas.getContext("2d");
 
 const reasons = Array.from({ length: 365 }, () =>
-    "This is where one of my reasons for loving you will go."
+    "PLACEHOLDER"
 );
 
-const anniversaryLetter = `
-My love,
-
-This is where your anniversary letter will go.
-
-365 little stars, 365 reasons, and still
-so many more things I could tell you.
-
-Happy anniversary.
-
-I love you.
-`;
-
-let width, height;
+const anniversaryLetter = "PLACEHOLDER";
 
 const world = {
-    width: 6000,
-    height: 4200
+    width: 3600,
+    height: 2600
 };
 
 const camera = {
@@ -241,6 +223,7 @@ const camera = {
     zoom: 1
 };
 
+let width, height;
 let stars = [];
 let discovered = new Set();
 
@@ -265,65 +248,75 @@ function distance(a, b) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
-// Generate evenly distributed stars
-
 function generateStars() {
     stars = [];
 
-    for (let i = 0; i < 365; i++) {
-        let bestCandidate = null;
-        let bestDistance = -1;
+    const columns = 20;
+    const rows = 19;
+    const cellWidth = world.width / columns;
+    const cellHeight = world.height / rows;
 
-        for (let j = 0; j < 45; j++) {
-            const candidate = {
-                x: random() * world.width,
-                y: random() * world.height
-            };
+    const positions = [];
 
-            let nearest = Infinity;
-
-            for (const star of stars) {
-                nearest = Math.min(
-                    nearest,
-                    distance(candidate, star)
-                );
-            }
-
-            const moonDistance = distance(candidate, {
-                x: world.width / 2,
-                y: world.height / 2
-            });
-
-            if (moonDistance < 260) {
-                continue;
-            }
-
-            if (nearest > bestDistance) {
-                bestDistance = nearest;
-                bestCandidate = candidate;
-            }
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < columns; x++) {
+            positions.push({ x, y });
         }
-
-        if (!bestCandidate) {
-            bestCandidate = {
-                x: random() * world.width,
-                y: random() * world.height
-            };
-        }
-
-        stars.push({
-            ...bestCandidate,
-            radius: 1.2 + random() * 1.5,
-            brightness: 0.55 + random() * 0.45,
-            phase: random() * Math.PI * 2,
-            speed: 0.5 + random() * 1.5
-        });
     }
+
+    for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+
+    for (const cell of positions) {
+        if (stars.length >= 365) break;
+
+        let candidate = {
+            x: (cell.x + .5 + (random() - .5) * .65) * cellWidth,
+            y: (cell.y + .5 + (random() - .5) * .65) * cellHeight
+        };
+
+        if (distance(candidate, {
+            x: world.width / 2,
+            y: world.height / 2
+        }) < 155) {
+            continue;
+        }
+
+        stars.push(candidate);
+    }
+
+    while (stars.length < 365) {
+        const candidate = {
+            x: random() * world.width,
+            y: random() * world.height
+        };
+
+        if (distance(candidate, {
+            x: world.width / 2,
+            y: world.height / 2
+        }) < 155) continue;
+
+        let nearest = Infinity;
+
+        for (const star of stars) {
+            nearest = Math.min(nearest, distance(candidate, star));
+        }
+
+        if (nearest > 65) stars.push(candidate);
+    }
+
+    stars.forEach(star => {
+        star.radius = 2 + random() * 1.7;
+        star.brightness = .65 + random() * .35;
+        star.phase = random() * Math.PI * 2;
+        star.speed = .6 + random() * 1.4;
+        star.rotation = random() * Math.PI;
+    });
 }
 
 generateStars();
-
-// Resize
 
 function resize() {
     width = window.innerWidth;
@@ -339,42 +332,56 @@ function resize() {
 
 window.addEventListener("resize", resize);
 
-// Background
-
 function drawBackground() {
     ctx.fillStyle = "#030916";
     ctx.fillRect(0, 0, width, height);
 
-    const glow1 = ctx.createRadialGradient(
-        width * 0.3, height * 0.5, 0,
-        width * 0.3, height * 0.5, width * 0.75
+    const glow = ctx.createRadialGradient(
+        width * .48, height * .48, 0,
+        width * .48, height * .48, width * .8
     );
 
-    glow1.addColorStop(0, "rgba(19, 65, 125, 0.15)");
-    glow1.addColorStop(1, "rgba(3, 9, 22, 0)");
+    glow.addColorStop(0, "rgba(24,65,120,.19)");
+    glow.addColorStop(.5, "rgba(10,34,70,.08)");
+    glow.addColorStop(1, "rgba(3,9,22,0)");
 
-    ctx.fillStyle = glow1;
+    ctx.fillStyle = glow;
     ctx.fillRect(0, 0, width, height);
 
     const glow2 = ctx.createRadialGradient(
-        width * 0.8, height * 0.8, 0,
-        width * 0.8, height * 0.8, width * 0.65
+        width * .85, height * .85, 0,
+        width * .85, height * .85, width * .5
     );
 
-    glow2.addColorStop(0, "rgba(35, 77, 130, 0.10)");
-    glow2.addColorStop(1, "rgba(3, 9, 22, 0)");
+    glow2.addColorStop(0, "rgba(31,78,135,.09)");
+    glow2.addColorStop(1, "rgba(3,9,22,0)");
 
     ctx.fillStyle = glow2;
     ctx.fillRect(0, 0, width, height);
 }
 
-// Get shortest wrapped distance
-
 function worldDifference(a, b, size) {
     return wrap(a - b + size / 2, size) - size / 2;
 }
 
-// Draw stars
+function drawFourPointStar(x, y, radius, color, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -radius * 2.5);
+    ctx.quadraticCurveTo(radius * .16, -radius * .16, radius * 2.5, 0);
+    ctx.quadraticCurveTo(radius * .16, radius * .16, 0, radius * 2.5);
+    ctx.quadraticCurveTo(-radius * .16, radius * .16, -radius * 2.5, 0);
+    ctx.quadraticCurveTo(-radius * .16, -radius * .16, 0, -radius * 2.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+}
 
 function drawStar(star, index) {
     const dx = worldDifference(star.x, camera.x, world.width);
@@ -384,34 +391,45 @@ function drawStar(star, index) {
     const y = height / 2 + dy * camera.zoom;
 
     if (
-        x < -20 || x > width + 20 ||
-        y < -20 || y > height + 20
+        x < -30 || x > width + 30 ||
+        y < -30 || y > height + 30
     ) return;
 
     const time = performance.now() / 1000;
+    const twinkle = .82 + Math.sin(time * star.speed + star.phase) * .18;
 
-    const twinkle =
-        0.8 + Math.sin(time * star.speed + star.phase) * 0.2;
-
-    const size = Math.max(star.radius * camera.zoom, 1.2);
     const seen = discovered.has(index);
+    const size = Math.max(star.radius * camera.zoom, 1.1);
+
+    ctx.save();
 
     ctx.globalAlpha = star.brightness * twinkle;
 
-    ctx.shadowBlur = seen ? 12 : 9;
-    ctx.shadowColor = seen ? "#45baff" : "#c5e3ff";
-
-    ctx.fillStyle = seen ? "#45baff" : "#e0efff";
+    if (seen) {
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#39aaff";
+        ctx.fillStyle = "#48baff";
+    } else {
+        ctx.shadowBlur = 11;
+        ctx.shadowColor = "#b9dcff";
+        ctx.fillStyle = "#e5f1ff";
+    }
 
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(x, y, size * (seen ? 1.3 : 1), 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
-}
+    if (seen) {
+        ctx.shadowBlur = 0;
+        drawFourPointStar(x, y, size * .85, "#72d0ff", .95);
+    } else if (star.radius > 3) {
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = "#d6eaff";
+        drawFourPointStar(x, y, size * .65, "#ffffff", .8);
+    }
 
-// Draw moon
+    ctx.restore();
+}
 
 function drawMoon() {
     const dx = worldDifference(
@@ -434,17 +452,34 @@ function drawMoon() {
         y < -100 || y > height + 100
     ) return;
 
-    const radius = 36 * camera.zoom;
+    const r = 38 * camera.zoom;
 
     ctx.save();
 
-    ctx.shadowBlur = 30 * camera.zoom;
-    ctx.shadowColor = "rgba(133, 190, 255, 0.65)";
+    const halo = ctx.createRadialGradient(x, y, r * .3, x, y, r * 2.5);
+    halo.addColorStop(0, "rgba(174,211,255,.19)");
+    halo.addColorStop(1, "rgba(100,160,230,0)");
 
-    ctx.fillStyle = "#dcecff";
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 30 * camera.zoom;
+    ctx.shadowColor = "rgba(159,203,255,.7)";
+
+    const moonGradient = ctx.createLinearGradient(
+        x - r, y - r, x + r, y + r
+    );
+
+    moonGradient.addColorStop(0, "#ffffff");
+    moonGradient.addColorStop(.5, "#d9eaff");
+    moonGradient.addColorStop(1, "#a9c9ed");
+
+    ctx.fillStyle = moonGradient;
 
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.shadowBlur = 0;
@@ -453,9 +488,9 @@ function drawMoon() {
 
     ctx.beginPath();
     ctx.arc(
-        x + radius * 0.48,
-        y - radius * 0.27,
-        radius * 0.88,
+        x + r * .53,
+        y - r * .32,
+        r * .87,
         0,
         Math.PI * 2
     );
@@ -465,8 +500,6 @@ function drawMoon() {
 
     ctx.restore();
 }
-
-// Render
 
 function draw() {
     drawBackground();
@@ -483,8 +516,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// Screen to world coordinates
-
 function screenToWorld(x, y) {
     return {
         x: wrap(
@@ -498,13 +529,11 @@ function screenToWorld(x, y) {
     };
 }
 
-// Find clicked star
-
 function findStar(x, y) {
     const point = screenToWorld(x, y);
 
     let closest = -1;
-    let closestDistance = 30 / camera.zoom;
+    let closestDistance = 32 / camera.zoom;
 
     stars.forEach((star, i) => {
         const d = distance(point, star);
@@ -518,26 +547,24 @@ function findStar(x, y) {
     return closest;
 }
 
-// Find moon
-
 function isMoonClicked(x, y) {
     const point = screenToWorld(x, y);
 
-    const moon = {
+    return distance(point, {
         x: world.width / 2,
         y: world.height / 2
-    };
-
-    return distance(point, moon) < 65 / camera.zoom;
+    }) < 62 / camera.zoom;
 }
-
-// Modal system
 
 const modal = document.getElementById("modal");
 const card = document.getElementById("card");
 
 function showModal(content) {
-    card.innerHTML = content;
+    card.innerHTML = `
+        <button class="exit" onclick="closeModal()">×</button>
+        ${content}
+    `;
+
     modal.classList.add("show");
 }
 
@@ -545,28 +572,8 @@ function closeModal() {
     modal.classList.remove("show");
 }
 
-// Show reason
-
-function openReason(index) {
-    discovered.add(index);
-
-    showModal(`
-        <div class="reason-text">
-            ${escapeHTML(reasons[index])}
-        </div>
-
-        <div class="small-star">✧</div>
-
-        <button class="close" onclick="closeModal()">
-            BACK TO THE STARS
-        </button>
-    `);
-}
-
-// Escape reason text
-
-function escapeHTML(text) {
-    return String(text).replace(/[&<>"']/g, char => ({
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
@@ -575,74 +582,48 @@ function escapeHTML(text) {
     })[char]);
 }
 
-// Show moon progress
+function openReason(index) {
+    discovered.add(index);
+
+    showModal(`
+        <div class="number">#${index + 1}</div>
+        <div class="reason">${escapeHTML(reasons[index])}</div>
+        <div class="star-decoration">✧</div>
+    `);
+}
 
 function openMoon() {
     const count = discovered.size;
-    const percentage = count / 365 * 100;
     const unlocked = count === 365;
 
     showModal(`
         <div class="moon-icon">☾</div>
 
-        <div class="progress-title">
-            OUR LITTLE UNIVERSE
-        </div>
-
         <div class="progress-count">
-            ${count} / 365 stars discovered
+            ${count} / 365
         </div>
 
         <div class="progress-bar">
             <div class="progress-fill"
-                style="width: ${percentage}%">
+                style="width:${count / 365 * 100}%">
             </div>
         </div>
 
-        <div class="progress-description">
-            ${unlocked
-                ? "You've discovered every little reason. There's something waiting for you."
-                : "There are still little pieces of my heart waiting to be found."
-            }
-        </div>
-
-        <button class="close"
+        <button class="unlock"
             ${unlocked ? "" : "disabled"}
-            onclick="${unlocked ? "openLetter()" : ""}">
-            ${unlocked ? "READ YOUR LETTER" : "LETTER LOCKED"}
-        </button>
-
-        <br>
-
-        <button class="close" onclick="closeModal()">
-            BACK TO THE STARS
+            onclick="openLetter()">
+            ${unlocked ? "♡" : "✧"}
         </button>
     `);
 }
-
-// Show final letter
 
 function openLetter() {
     if (discovered.size !== 365) return;
 
     showModal(`
-        <div class="moon-icon">☾</div>
-
-        <div class="progress-title">
-            FOR YOU, ALWAYS
-        </div>
-
-        <div class="letter-text">
-            ${escapeHTML(anniversaryLetter)}
-        </div>
-
-        <button class="close" onclick="closeModal()">
-            BACK TO OUR UNIVERSE
-        </button>
+        <div class="letter">${escapeHTML(anniversaryLetter)}</div>
     `);
 }
-
-// Pointer controls
 
 let pointers = new Map();
 let lastPosition = null;
@@ -693,7 +674,7 @@ canvas.addEventListener("pointermove", e => {
         const dx = e.clientX - lastPosition.x;
         const dy = e.clientY - lastPosition.y;
 
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
             gestureMoved = true;
         }
 
@@ -778,12 +759,10 @@ canvas.addEventListener("pointercancel", e => {
     gestureMoved = true;
 });
 
-// Zoom
-
 function zoomAt(x, y, newZoom) {
     const oldZoom = camera.zoom;
 
-    newZoom = Math.max(0.65, Math.min(3, newZoom));
+    newZoom = Math.max(.65, Math.min(3, newZoom));
 
     const worldX = camera.x + (x - width / 2) / oldZoom;
     const worldY = camera.y + (y - height / 2) / oldZoom;
@@ -815,23 +794,20 @@ document.getElementById("home").addEventListener("click", () => {
     camera.zoom = 1;
 });
 
-// Mouse wheel zoom
-
 canvas.addEventListener("wheel", e => {
     e.preventDefault();
 
     zoomAt(
         e.clientX,
         e.clientY,
-        camera.zoom * (e.deltaY < 0 ? 1.1 : 0.9)
+        camera.zoom * (e.deltaY < 0 ? 1.1 : .9)
     );
 }, { passive: false });
-
-// Start
 
 resize();
 animate();
 
 </script>
 </body>
-</html>
+    </html>
+    
