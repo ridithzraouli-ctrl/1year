@@ -9,6 +9,10 @@
 <style>
 * {
     box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -168,20 +172,27 @@ canvas:active {
     margin-top: 15px;
 }
 
-.unlock {
+.next {
     margin-top: 10px;
-    padding: 12px 24px;
+    padding: 12px 30px;
     border: 1px solid #537eae;
+    border-radius: 3px;
     background: rgba(72,135,195,.12);
     color: #c9e4ff;
     font-family: Georgia, serif;
     font-size: 12px;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     cursor: pointer;
+    transition: background .2s, border-color .2s;
 }
 
-.unlock:disabled {
-    opacity: .35;
+.next:not(:disabled):hover {
+    background: rgba(72,135,195,.25);
+    border-color: #83baff;
+}
+
+.next:disabled {
+    opacity: .3;
     cursor: default;
 }
 
@@ -272,7 +283,7 @@ function generateStars() {
     for (const cell of positions) {
         if (stars.length >= 365) break;
 
-        let candidate = {
+        const candidate = {
             x: (cell.x + .5 + (random() - .5) * .65) * cellWidth,
             y: (cell.y + .5 + (random() - .5) * .65) * cellHeight
         };
@@ -483,7 +494,6 @@ function drawMoon() {
     ctx.fill();
 
     ctx.shadowBlur = 0;
-
     ctx.globalCompositeOperation = "destination-out";
 
     ctx.beginPath();
@@ -497,7 +507,6 @@ function drawMoon() {
     ctx.fill();
 
     ctx.globalCompositeOperation = "source-over";
-
     ctx.restore();
 }
 
@@ -533,7 +542,7 @@ function findStar(x, y) {
     const point = screenToWorld(x, y);
 
     let closest = -1;
-    let closestDistance = 32 / camera.zoom;
+    let closestDistance = 70 / camera.zoom;
 
     stars.forEach((star, i) => {
         const d = distance(point, star);
@@ -609,10 +618,10 @@ function openMoon() {
             </div>
         </div>
 
-        <button class="unlock"
+        <button class="next"
             ${unlocked ? "" : "disabled"}
             onclick="openLetter()">
-            ${unlocked ? "♡" : "✧"}
+            NEXT
         </button>
     `);
 }
@@ -762,7 +771,7 @@ canvas.addEventListener("pointercancel", e => {
 function zoomAt(x, y, newZoom) {
     const oldZoom = camera.zoom;
 
-    newZoom = Math.max(.65, Math.min(3, newZoom));
+    newZoom = Math.max(.25, Math.min(3, newZoom));
 
     const worldX = camera.x + (x - width / 2) / oldZoom;
     const worldY = camera.y + (y - height / 2) / oldZoom;
@@ -804,10 +813,14 @@ canvas.addEventListener("wheel", e => {
     );
 }, { passive: false });
 
+document.addEventListener("contextmenu", e => {
+    e.preventDefault();
+});
+
 resize();
 animate();
-
 </script>
+
 </body>
     </html>
     
